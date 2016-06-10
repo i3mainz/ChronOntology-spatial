@@ -1,0 +1,253 @@
+<html>
+	<head>
+		<meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+		<title>i3.timeconceptSearchPointMap</title>
+		<script src="http://code.jquery.com/jquery-latest.js"></script>
+		<link rel="stylesheet" type="text/css" href="css/i3_style.css">
+
+		<!-- version 0.7.5 -->
+		<script src="leaflet/leaflet-src.js"></script>
+		<link rel="stylesheet" href="leaflet/leaflet.css" />
+
+		<script src="js/webgl-heatmap.js"></script>
+		<script src="js/webgl-heatmap-leaflet.js"></script>
+
+		<script src="js/jquery.autocomplete.js"></script>
+
+		<!-- https://github.com/mapbox/geojson-extent -->
+		<script src="js/geojson-extent.js"></script>
+		<!-- https://github.com/fgnass/spin.js -->
+		<script src="apps/spin.js"></script>
+		<!-- https://github.com/makinacorpus/Leaflet.Spin -->
+		<script src="apps/leaflet.spin.js"></script>
+		
+		<link rel="stylesheet" href="css/MarkerCluster.css" />
+		<link rel="stylesheet" href="css/MarkerCluster.Default.css" />
+		<script src="js/leaflet.markercluster-src.js"></script>
+		
+		<!-- https://github.com/ardhi/Leaflet.MousePosition -->
+		<link rel="stylesheet" href="L.Control.MousePosition.css" />
+		<script src="L.Control.MousePosition.js"></script>
+
+		<STYLE>
+			.map {
+				width:100%;
+				height: calc(100% - 49px);
+				margin-top: 2px;
+				float:left;
+			}
+			.autocomplete-suggestions { border: 1px solid #999; background: #FFF; overflow: auto; }
+			.autocomplete-suggestion { padding: 2px 5px; white-space: nowrap; overflow: hidden; }
+			.autocomplete-no-suggestion { padding: 2px 5px;}
+			.autocomplete-selected { background: #F0F0F0; }
+			.autocomplete-suggestions strong { font-weight: bold; color: red; }
+			.search { float:left; font-size: 16px; padding: 8px; border: 1px solid #888; width: 600px; height:45px; border-radius: 0px; }
+			.ac { z-index: 2; background: transparent; position: absolute; }
+			.achint { color: #AAA; background: #FFF; z-index: 1; position: absolute;}
+			.seldb { float:left; font-size: 16px; padding: 8px; border: 1px solid #888; width: 150px; height:45px; border-radius: 0px; margin-right: 10px;}
+			#div_header { width: 100%; height: 45px; float:left; margin-top: 2px; margin-left:0px; margin-right:0px; background-color: transparent;}
+			#div_autocomplete { width: 815px; height: 45px; float:right; margin-top: 0px; margin-left:0px; margin-right:10px; background-color: transparent;}
+			.button {
+				float:right;
+				font-size: 18px;
+				padding: 10px;
+				line-height: 1.6em;
+				background-color: #FFF;
+				background-repeat: repeat-x;
+				border-color: #888;
+				color: #fff;
+				border-radius: 0px;
+				border-style: solid;
+				border-width: 1px;
+				cursor: pointer;
+				text-align: center;
+				vertical-align: middle;
+				line-height: 20px;
+				height: 23px;
+				margin-left: 10px;
+			}
+			#header { margin-top:0px; background-color: red; height: 40px;}
+			#title { font-size: 20px; margin-left: 20px; margin-right: 20px; margin-top: 11px; float: left; font-weight: normal; background-color: transparent;}
+		</STYLE>
+	</head>
+	<body>
+		<div id="div_header">
+			<span id="title">i3.timeconceptSearchPointMap</span>
+			<div id="div_autocomplete">
+				<select class="seldb" id="dbselect"></select>
+				<input type='text' class='search ac' id='autocomplete' />
+				<input type='text' class='search achint' id='autocomplete-hint' disabled='disabled' />
+				<input type='image' src='x.png' class='button' id='clear'>
+				<input type='image' src='world8-512.png' class='button' id='show'>
+			</div>
+		</div>
+		<div id="map" class="map newline"></div>
+		<script>
+			var url = "http://localhost:8084/CO_SpaceTimeCompare/";
+			//var url = "http://chronontology.i3mainz.hs-mainz.de/CO_SpaceTimeCompare/";
+			var markers;
+			var markers_events;
+			var opttype;
+			var timeconcept;
+			var db;
+			var selectdb = "";
+			var databases = [["no filter", ""], ["Arachne", "dumpapi.arachne"], ["Pleiades", "dumpapi.pleiades"]];
+			var autocompleteURL = url + "autocomplete";
+			var heatmapURL = url + "getHeatmapData";
+			var radiusInMeter = 100000;
+			var bbox;
+			var baseLayer = L.tileLayer(
+					'http://{s}.tiles.wmflabs.org/bw-mapnik/{z}/{x}/{y}.png', {
+						attribution: '&copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a>'
+					}
+			);
+			// set map
+			var map = new L.Map('map', {
+				center: new L.LatLng(50.009167, 4.666389),
+				zoom: 4,
+				layers: [baseLayer]
+			});
+			L.control.scale().addTo(map);
+			L.control.mousePosition().addTo(map);
+			//custom size for this example, and autoresize because map style has a percentage width
+			// https://github.com/pyalot/webgl-heatmap
+			// http://ursudio.com/webgl-heatmap-leaflet/
+			// https://github.com/ursudio/webgl-heatmap-leaflet
+			// get Layer Data onClick
+			getLayerData = function () {
+				if (bbox) {
+					map.removeLayer(bbox);
+				}
+				getWFSgeoJSONsetPoints();
+			}
+			// get Point WFS Layer and create Heatmap
+			getWFSgeoJSONsetPoints = function () {
+				map.spin(true, {top: '50%', left: '50%', lines: 15, length: 50, width: 15, radius: 50, opacity: 0.3, shadow: true});
+				$.ajax({
+					type: 'GET',
+					url: heatmapURL,
+					data: {
+						db: db,
+						timeconcept: timeconcept,
+						opttype: opttype
+					},
+					error: function (jqXHR, textStatus, errorThrown) {
+						map.spin(false);
+						clear();
+						alert(errorThrown);
+					},
+					success: function (geojson) {
+						try {
+							geojson = JSON.parse(geojson);
+						} catch (e) {
+						}
+						map.spin(false);
+						setMarker(geojson);
+						var MAP_ZOOM = 3;
+						bbox = L.polygon([
+							[geojson.extent.upperleft.lat, geojson.extent.upperleft.lon],
+							[geojson.extent.upperright.lat, geojson.extent.upperright.lon],
+							[geojson.extent.lowerright.lat, geojson.extent.lowerright.lon],
+							[geojson.extent.lowerleft.lat, geojson.extent.lowerleft.lon],
+							[geojson.extent.upperleft.lat, geojson.extent.upperleft.lon],
+						]).addTo(map);
+						setTimeout(function () {
+							map.setView([geojson.centroid.lat, geojson.centroid.lon], MAP_ZOOM);
+						}, 1);
+						$('#clear').show();
+						$('#show').hide();
+					}
+				});
+			}
+	
+			function setMarker(geojson) {
+				markers_events = null;
+				markers_events = L.markerClusterGroup();
+				markers = L.geoJson(geojson, {
+				});
+				markers_events.addLayer(markers);
+				map.addLayer(markers_events);
+			}
+			
+			// Initialize ajax autocomplete
+			// more at http://www.devbridge.com/sourcery/components/jquery-autocomplete
+			$('#autocomplete').autocomplete({
+				minChars: 2,
+				showNoSuggestionNotice: true,
+				noSuggestionNotice: 'Sorry, no matching results',
+				serviceUrl: function () {
+					var url = autocompleteURL + "?db=" + $("#dbselect").val();
+					return url;
+				},
+				lookupFilter: function (suggestion, originalQuery, queryLowerCase) {
+					var re = new RegExp('\\b' + $.Autocomplete.utils.escapeRegExChars(queryLowerCase), 'gi');
+					return re.test(suggestion.value);
+				},
+				onSelect: function (response) {
+					try {
+						response = JSON.parse(response);
+					} catch (e) {
+					}
+					console.info(response);
+					timeconcept = response.value;
+					switch (response.provenance) {
+						case "arachne":
+							opttype = "Fundort";
+							db = "dumpapi.arachne";
+							break;
+						case "pleiades":
+							opttype = "";
+							db = "dumpapi.pleiades";
+							break;
+						default:
+							opttype = "";
+							db = "";
+					}
+					console.info("opttype > " + opttype);
+					$('#autocomplete').prop('disabled', true);
+					$('#clear').hide();
+					$('#show').show();
+				},
+				onHint: function (hint) {
+					$('#autocomplete-hint').val(hint);
+				},
+				onInvalidateSelection: function () {
+					console.info('You selected: none');
+				}
+			});
+			$('#clear').click(function (e) {
+				clear();
+			});
+			$('#show').click(function (e) {
+				getLayerData();
+			});
+			function clear() {
+				$('#autocomplete').val("");
+				$('#autocomplete').prop('disabled', false);
+				$('#clear').hide();
+				$('#show').hide();
+				$('#dbselect').val("");
+				if (bbox) {
+					map.removeLayer(bbox);
+				}
+				if (markers_events) {
+					map.removeLayer(markers_events);
+				}
+				setTimeout(function () {
+					map.setView([50.009167, 4.666389], 4);
+				}, 1);
+			}
+			function init() {
+				var x = document.getElementById("dbselect");
+				for (var i = 0; i < databases.length; i++) {
+					var option = document.createElement("option");
+					option.text = databases[i][0];
+					option.value = databases[i][1];
+					x.add(option);
+				}
+			}
+			init();
+			clear();
+		</script>
+	</body>
+</html>

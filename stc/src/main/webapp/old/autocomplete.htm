@@ -1,0 +1,109 @@
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+<title>chronOntology</title>
+<script src="http://code.jquery.com/jquery-latest.js"></script>
+<script src="js/jquery.autocomplete.js"></script>
+<link rel="stylesheet" type="text/css" href="css/i3_style.css">
+<style type="text/css">
+
+.autocomplete-suggestions { border: 1px solid #999; background: #FFF; overflow: auto; }
+.autocomplete-suggestion { padding: 2px 5px; white-space: nowrap; overflow: hidden; }
+.autocomplete-no-suggestion { padding: 2px 5px;}
+.autocomplete-selected { background: #F0F0F0; }
+.autocomplete-suggestions strong { font-weight: bold; color: red; }
+.search { float:left; font-size: 16px; padding: 8px; border: 1px solid #888; width: 800px; height:45px; border-radius: 0px;}
+.ac { z-index: 2; background: transparent; position: absolute; }
+.achint { color: #AAA; background: #FFF; z-index: 1; position: absolute;}
+#div_autocomplete { width: 1200px; height: 45px; float:left; }
+.button {
+	float:right;
+	font-size: 18px;
+	padding: 10px;
+	line-height: 1.6em;
+	background-color: #FFF;
+	background-repeat: repeat-x;
+	border-color: #888;
+	color: #fff;
+	border-radius: 0px;
+	border-style: solid;
+	border-width: 1px;
+	cursor: pointer;
+	text-align: center;
+	vertical-align: middle;
+	line-height: 20px;
+	height: 23px;
+}
+
+</style>
+</head>
+<body>
+	<div id="div_autocomplete">
+		<input type='text' class='search ac' id='autocomplete' />
+		<input type='text' class='search achint' id='autocomplete-hint' disabled='disabled' />
+		<input type='image' src='x.png' class='button' id='clear'>
+	</div>
+<script>
+	var url = "http://localhost:8084/CO_SpaceTimeCompare/";
+	var autocompleteURL = url + "autocomplete" + "?db=$db";
+	var opttype;
+	// Initialize ajax autocomplete
+	// more at http://www.devbridge.com/sourcery/components/jquery-autocomplete
+	$('#autocomplete').autocomplete({
+		minChars: 2,
+		showNoSuggestionNotice: true,
+		noSuggestionNotice: 'Sorry, no matching results',
+		serviceUrl: autocompleteURL.replace("$db",""),
+		lookupFilter: function(suggestion, originalQuery, queryLowerCase) {
+			var re = new RegExp('\\b' + $.Autocomplete.utils.escapeRegExChars(queryLowerCase), 'gi');
+			return re.test(suggestion.value);
+		},
+		onSelect: function(response) {
+			try {
+				response = JSON.parse(response);
+			} catch (e) {}
+			console.info(response);
+			switch (response.provenance) {
+				case "arachne":
+					opttype = "Fundort";
+					break;
+				case "pleiades":
+					opttype = "";
+					break;
+				default:
+					opttype = "";
+			}
+			console.info(opttype);
+			$('#autocomplete').prop('disabled', true);
+			$('#clear').show();
+		},
+		onHint: function(hint) {
+			$('#autocomplete-hint').val(hint);
+		},
+		onInvalidateSelection: function() {
+			console.info('You selected: none');
+		}
+	});
+	$('#clear').click(function(e){
+		clear();
+	});
+	function clear() {
+		$('#autocomplete').val("");
+		$('#autocomplete').prop('disabled', false);
+		$('#clear').hide();
+	}
+	function init() {
+		var x = document.getElementById("db");
+		var option = document.createElement("option");
+		for (var i=0; i<databases.length; i++) {
+			option.text = databases[i][0];
+			option.value = databases[i][1];
+			x.add(option);
+		}
+		$('#db').val("");
+	}
+	init();
+	clear();
+</script>
+</body>
+</html>

@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<!-- Use correct character set. -->
+		<meta charset="utf-8">
+		<!-- Tell IE to use the latest, best version. -->
+		<meta http-equiv="X-UA-Compatible" content="IE=edge">
+		<!-- Make the application on mobile take up the full browser screen and disable user scaling. -->
+		<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, minimum-scale=1, user-scalable=no">
+		<title>cesium DAI GAZETTEER demo</title>
+		<script src="Cesium/Cesium.js"></script>
+		<!-- jQuery -->
+		<script src="http://code.jquery.com/jquery-latest.js"></script>
+		<script src="http://fgnass.github.io/spin.js/spin.min.js"></script>
+		<!-- Config File -->
+		<script src="../../Config.js"></script>
+		<style>
+			@import url(Cesium/Widgets/widgets.css);
+			#cesiumContainer {				
+				height: 600px;
+				width: 800px;
+				margin: 0;
+				overflow: hidden;
+				padding: 0;
+				font-family: sans-serif;
+				float:left;
+				clear:both;
+			}
+		</style>
+	</head>
+	<body>
+		<p><b>Gazetteer-IDs: </b>2063182;2359907;2086335;2280204</p>
+		<p><b>check-Point: </b>lat: 55.675706 lon: 12.578745</p>
+		<div id="cesiumContainer"></div>
+		<div id="loading"></div>
+		<script>
+			// spin
+			var opts = {
+				lines: 13 // The number of lines to draw
+				, length: 28 // The length of each line
+				, width: 14 // The line thickness
+				, radius: 42 // The radius of the inner circle
+				, scale: 1 // Scales overall size of the spinner
+				, corners: 1 // Corner roundness (0..1)
+				, color: '#000' // #rgb or #rrggbb or array of colors
+				, opacity: 0.25 // Opacity of the lines
+				, rotate: 0 // The rotation offset
+				, direction: 1 // 1: clockwise, -1: counterclockwise
+				, speed: 1 // Rounds per second
+				, trail: 60 // Afterglow percentage
+				, fps: 20 // Frames per second when using setTimeout() as a fallback for CSS
+				, zIndex: 2e9 // The z-index (defaults to 2000000000)
+				, className: 'spinner' // The CSS class to assign to the spinner
+				, top: '50%' // Top position relative to parent
+				, left: '50%' // Left position relative to parent
+				, shadow: false // Whether to render a shadow
+				, hwaccel: false // Whether to use hardware acceleration
+				, position: 'absolute' // Element positioning
+			}
+			var target = document.getElementById('foo')
+			var spinner = new Spinner(opts).spin();
+			$("#loading").append(spinner.el);
+
+			$("#loading").show();
+			$("#cesiumContainer").hide();
+			var gj;
+			var viewer = new Cesium.Viewer('cesiumContainer', {
+				timeline: false,
+				fullscreenButton: false,
+				homeButton: false,
+				scene3DOnly: false,
+				navigationHelpButton: false,
+				animation: false,
+				imageryProvider: Cesium.createOpenStreetMapImageryProvider({
+					//url : '//a.tile.openstreetmap.org'
+					url: '//a.tile.openstreetmap.fr/hot/'
+				}),
+				baseLayerPicker: false
+			});
+
+			//var source = "http://gazetteer.dainst.org/doc/2063182.geojson?pretty=true";
+			//var source = "http://localhost:8084/CO_SpaceTimeCompare/getDAIgazetteerData?ids=2063182;2359907;2086335;2280204";
+
+			$.ajax({
+				type: 'GET',
+				url: Config.servletURL + "getDAIgazetteerData",
+				data: {
+					ids: "2063182;2359907;2086335;2280204",
+					lat: 55.675706,
+					lon: 12.578745
+				},
+				error: function (jqXHR, textStatus, errorThrown) {
+					alert(errorThrown);
+				},
+				success: function (geojson) {
+					try {
+						geojson = JSON.parse(geojson);
+					} catch (e) {
+					}
+					var check = geojson.properties.inside;
+					var strokes = [Cesium.Color.RED, Cesium.Color.GREEN];
+					var fills = [Cesium.Color.RED.withAlpha(0.5), Cesium.Color.GREEN.withAlpha(0.5)];
+					var stroke = strokes[0];
+					var fill = fills[0];
+					if(check){
+						stroke = strokes[1];
+						fill = fills[1];
+					}
+					gj = viewer.dataSources.add(Cesium.GeoJsonDataSource.load(geojson, {
+						stroke: stroke,
+						fill: fill,
+						strokeWidth: 3
+					}));
+					viewer.zoomTo(gj);
+					$("#loading").hide();
+					$("#cesiumContainer").show();
+				}
+			});
+
+			/*var gj = viewer.dataSources.add(Cesium.GeoJsonDataSource.load(source, {
+			 stroke: Cesium.Color.RED,
+			 fill: Cesium.Color.RED.withAlpha(0.5),
+			 strokeWidth: 3
+			 }));
+			 viewer.zoomTo(gj);*/
+
+			// https://cesiumjs.org/Cesium/Apps/Sandcastle/index.html?src=GeoJSON%20and%20TopoJSON.html&label=Showcases
+			/*var gj = Cesium.GeoJsonDataSource.load('http://gazetteer.dainst.org/doc/2063182.geojson?pretty=true');
+			 gj.then(function(dataSource) {
+			 viewer.dataSources.add(dataSource);
+			 //Get the array of entities
+			 var entities = dataSource.entities.values;
+			 console.info(entities);
+			 for (var i = 0; i < entities.length; i++) {
+			 var entity = entities[i];
+			 //Set the polygon material to our random color.
+			 entity.polygon.material = Cesium.Color.RED.withAlpha(0.5);
+			 //Remove the outlines.
+			 entity.polygon.outline = Cesium.Color.RED;
+			 //Extrude the polygon based on the state's population.  Each entity
+			 //stores the properties for the GeoJSON feature it was created from
+			 //Since the population is a huge number, we divide by 50.
+			 entity.polygon.extrudedHeight = 200.0;
+			 }
+			 }).otherwise(function(error){
+			 window.alert(error);
+			 });
+			 viewer.zoomTo(gj);*/
+		</script>
+	</body>
+</html>
