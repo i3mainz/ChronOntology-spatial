@@ -75,15 +75,17 @@ public class GazetteerDAI {
 			url = "http://"+host+"/stc/getWorldJSON";
 			dai = false;
 		} else {
-			url = "http://gazetteer.dainst.org/doc/#id#.geojson";
+			url = "https://gazetteer.dainst.org/doc/#id#.geojson";
 		}
 		url = url.replace("#id#", id);
 		URL obj = new URL(url);
 		HttpURLConnection con = (HttpURLConnection) obj.openConnection();
 		con.setRequestMethod("GET");
+		con.setInstanceFollowRedirects(true);
+		HttpURLConnection.setFollowRedirects(true);
 		int responseCode = con.getResponseCode();
-		System.out.println("DAI Gazetteer Response Code : " + responseCode);
-		if (responseCode == 200) {
+		System.out.println("DAI Gazetteer Response Code : " + responseCode + " - " + url);
+		if (responseCode < 400) {
 			BufferedReader in = new BufferedReader(new InputStreamReader(con.getInputStream(), "UTF-8"));
 			String inputLine;
 			StringBuffer response = new StringBuffer();

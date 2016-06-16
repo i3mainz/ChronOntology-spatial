@@ -26,7 +26,7 @@ public class ChronOntology {
 		con.setRequestMethod("GET");
 		con.setRequestProperty("Accept", "application/json");
 		int responseCode = con.getResponseCode();
-		System.out.println("ChronOntology Response Code : " + responseCode);
+		System.out.println("ChronOntology Response Code : " + responseCode + " - " + url);
 		if (responseCode == 200) {
 			BufferedReader in = new BufferedReader(new InputStreamReader(con.getInputStream(), "UTF-8"));
 			String inputLine;

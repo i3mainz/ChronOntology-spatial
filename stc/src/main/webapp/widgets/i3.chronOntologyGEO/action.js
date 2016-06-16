@@ -63,7 +63,8 @@ $(document).ready(function () {
 			error: function (jqXHR, textStatus, errorThrown) {
 				map.spin(false);
 				clear();
-				alert(errorThrown);
+				//alert(errorThrown);
+				console.log(errorThrown);
 			},
 			success: function (geojson) {
 				try {
