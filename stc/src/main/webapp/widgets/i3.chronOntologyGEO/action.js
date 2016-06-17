@@ -13,7 +13,7 @@ $(document).ready(function () {
 	// MAP OPTIONS
 	var mapY = 50.009167;
 	var mapX = 4.666389;
-	var mapZOOM = 3;
+	var mapZOOM = 2;
 	var markers;
 	var map = new L.Map('map', {
 		fullscreenControl: {

@@ -71,7 +71,7 @@ public class GazetteerDAI {
 	public static GazetteerData getgeoJSONFromDaiGazetteer(String id) throws Exception {
 		boolean dai = true;
 		String url = "";
-		if (id.contains("getWorldJSON")) {
+		if (id.contains("getWorldJSON") || id.equals("2042600")) {
 			url = "http://"+host+"/stc/getWorldJSON";
 			dai = false;
 		} else {
