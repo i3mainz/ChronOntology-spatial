@@ -26,7 +26,7 @@ $(document).ready(function () {
 	// ADD SCALE AND COORDINATE VIEW
 
 	L.control.scale().addTo(map);
-	L.control.mousePosition().addTo(map);
+	//L.control.mousePosition().addTo(map);
 
 	var legend = L.control({position: 'topright'});
 	legend.onAdd = function (map) {
@@ -41,7 +41,7 @@ $(document).ready(function () {
 	legend.addTo(map);
 
 	// ADD CONTROLS
-	var maptitle = L.control({position: 'bottomleft'});
+	/*var maptitle = L.control({position: 'bottomleft'});
 	maptitle.onAdd = function (map) {
 		var div = L.DomUtil.create('div', '');
 		div.id = "maptitle";
@@ -49,7 +49,7 @@ $(document).ready(function () {
 		div.firstChild.onmousedown = div.firstChild.ondblclick = L.DomEvent.stopPropagation;
 		return div;
 	};
-	maptitle.addTo(map);
+	maptitle.addTo(map);*/
 	getMarkergeoJSON();
 	// LOAD DATA AND SET MAP
 	function getMarkergeoJSON() {
@@ -107,6 +107,7 @@ $(document).ready(function () {
 		"opacity": 1.0,
 		"fillOpacity": 0.8
 	};
+	var popupinfo = [];
 	function setMarker(geojson) {
 		markers = null;
 		markers = L.markerClusterGroup();
@@ -139,13 +140,19 @@ $(document).ready(function () {
 				}
 			}
 		});
+		console.log(popupinfo);
 		markers.addLayer(marker);
 		map.addLayer(markers);
+		var popupContent = "";
+		console.log(popupinfo);
+		for (var i=0; i< popupinfo.length; i++) {
+			var split = popupinfo[i].split(";");
+			popupContent += split[0] + " <a href='" + split[1] + "' target='_blank'>[Website]</a><br>";
+		}
+		marker.bindPopup(popupContent);
 	}
 	function onEachFeature(feature, layer) {
-		var popupContent = "";
-		popupContent += "<b>" + feature.properties.name + "</b><br><a href='" + feature.properties.homepage + "' target='_blank'>Website</a>";
-		layer.bindPopup(popupContent);
+		popupinfo.push(feature.properties.name + ";" + feature.properties.homepage);
 	}
 	// FUNCTIONS FOR BUTTONS
 	$('#clear').click(function (e) {
