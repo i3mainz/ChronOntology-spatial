@@ -100,10 +100,10 @@
 				layers: [baseLayer]
 			});
 			L.control.scale().addTo(map);
-			L.control.mousePosition().addTo(map);
+			//L.control.mousePosition().addTo(map);
 
 			// ADD CONTROLS
-			var maptitle = L.control({position: 'bottomleft'});
+			/*var maptitle = L.control({position: 'bottomleft'});
 			maptitle.onAdd = function (map) {
 				var div = L.DomUtil.create('div', '');
 				div.id = "maptitle";
@@ -111,7 +111,7 @@
 				div.firstChild.onmousedown = div.firstChild.ondblclick = L.DomEvent.stopPropagation;
 				return div;
 			};
-			maptitle.addTo(map);
+			maptitle.addTo(map);*/
 			var mapselect = L.control({position: 'topright'});
 			mapselect.onAdd = function (map) {
 				var div = L.DomUtil.create('div', '');
@@ -216,7 +216,8 @@
 							heatmap.addDataPoint(geojson.features[i].geometry.coordinates[1], geojson.features[i].geometry.coordinates[0], 100);
 						}
 						map.addLayer(heatmap);
-						getMarkergeoJSON();
+						map.spin(false);
+						//getMarkergeoJSON();
 					}
 				});
 			}
@@ -254,7 +255,7 @@
 				var marker = L.geoJson(geojson, {
 				});
 				markers.addLayer(marker);
-				map.addLayer(markers);
+				//map.addLayer(markers);
 			}
 
 			// FUNCTIONS FOR BUTTONS
