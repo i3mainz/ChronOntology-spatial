@@ -26,10 +26,6 @@
 * importdate: character varying
 * geom: geometry
 
-| id | timeconcept | internalid | opttype | optdesc | importdate | geom |
-| -- | ----------- | ---------- | ------- | ------- | ---------- | ---- |
-|    |             |            |         |         |            |      |
-
 ### tables
 
 ```sql
