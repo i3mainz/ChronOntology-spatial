@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<!-- Use correct character set. -->
+		<meta charset="utf-8">
+		<!-- Tell IE to use the latest, best version. -->
+		<meta http-equiv="X-UA-Compatible" content="IE=edge">
+		<!-- Make the application on mobile take up the full browser screen and disable user scaling. -->
+		<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, minimum-scale=1, user-scalable=no">
+		<title>cesium DAI GAZETTEER demo</title>
+		<script src="Cesium/Cesium.js"></script>
+		<!-- jQuery -->
+		<script src="http://code.jquery.com/jquery-latest.js"></script>
+		<!--<script src="http://fgnass.github.io/spin.js/spin.min.js"></script>-->
+		<!-- Config File -->
+		<script src="../../Config.js"></script>
+		<style>
+			@import url(Cesium/Widgets/widgets.css);
+			#cesiumContainer {
+				height: 100%;
+				width: 100%;
+				margin: 0;
+				overflow: hidden;
+				padding: 0;
+				font-family: sans-serif;
+				float:left;
+				clear:both;
+			}
+		</style>
+	</head>
+	<body>
+		<div id="cesiumContainer"></div>
+		<script>
+        // create cesium viewer
+        var viewer = new Cesium.Viewer('cesiumContainer', {
+            timeline: false,
+            fullscreenButton: false,
+            homeButton: false,
+            scene3DOnly: false,
+            navigationHelpButton: false,
+            animation: false,
+            imageryProvider: Cesium.createOpenStreetMapImageryProvider({
+                //url : 'https://a.tile.openstreetmap.org'
+                url: 'http://{s}.tiles.mapbox.com/v3/isawnyu.map-knmctlkh/',
+                credit: "Tiles (c) MapBox | Data (c) OpenStreetMapand contributors, CC-BY-SA | Tiles and Data (c) 2013 AWMC CC-BY-NC 3.0"
+            }),
+            baseLayerPicker: false,
+            sceneMode: Cesium.SceneMode.COLUMBUS_VIEW
+        });
+        // init vars
+        var sphereRii = 150000;
+        var linkingcolor = Cesium.Color.ORANGE;
+        var spherecolor = Cesium.Color.BLUE;
+        var sphereoutlinecolor = Cesium.Color.BLACK;
+        var polylinewidth = 3;
+        var polylineoutlinewidth = 0;
+        var offset = 500000;
+        var points = [];
+        // set points
+        points.push({"lon": -118.243611, "lat": 34.052222, "name": "Los Angeles"});
+        points.push({"lon": -43.1963893, "lat": -22.908333, "name": "Rio de Janero"});
+        points.push({"lon": 8.271111, "lat": 50.0, "name": "Mainz"});
+        points.push({"lon": 18.416689, "lat": -33.922667, "name": "Kapstadt"});
+        points.push({"lon": 115.85, "lat": -31.95, "name": "Perth"});
+        points.push({"lon": -122.681944, "lat": 45.52, "name": "Portland"});
+        for (i=0; i<points.length; i++) {
+            // create sphere
+            viewer.entities.add({
+                name: points[i].name,
+                position: Cesium.Cartesian3.fromDegrees(points[i].lon,points[i].lat,(i+1)*offset),
+                ellipsoid : {
+                    radii : new Cesium.Cartesian3(sphereRii,sphereRii,sphereRii),
+                    material : spherecolor,
+                    outline : true,
+                    outlineColor : sphereoutlinecolor
+                }
+            });
+            // create polyline to ground
+            viewer.entities.add({
+                polyline : {
+                    positions : Cesium.Cartesian3.fromDegreesArrayHeights([points[i].lon,points[i].lat,(i+1)*offset,points[i].lon,points[i].lat,0]),
+                    width : polylinewidth,
+                    material : new Cesium.PolylineOutlineMaterialProperty({
+                        color : spherecolor,
+                        outlineWidth : polylineoutlinewidth,
+                        outlineColor : spherecolor
+                    })
+                }
+            });
+        }
+        // create linking polyline
+        for (i=0; i<points.length-1; i++) {
+            viewer.entities.add({
+                polyline : {
+                    positions : Cesium.Cartesian3.fromDegreesArrayHeights([points[i].lon,points[i].lat,(i+1)*offset,
+                                                                           points[i+1].lon,points[i+1].lat,(i+2)*offset]),
+                    width : polylinewidth,
+                    material : new Cesium.PolylineOutlineMaterialProperty({
+                        color : linkingcolor,
+                        outlineWidth : polylineoutlinewidth,
+                        outlineColor : linkingcolor
+                    })
+                }
+            });
+        }
+		</script>
+	</body>
+</html>

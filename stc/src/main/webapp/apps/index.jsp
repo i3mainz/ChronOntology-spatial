@@ -13,24 +13,27 @@
 		<br />
 		<div style="margin-left:50px; font-size:20px;">
 			<a href="i3.timeconceptSearch">i3.timeconceptSearch</a>
-			<br /> 
-			<br /> 
+			<br />
+			<br />
 			<a href="i3.gazetteerSearch">i3.gazetteerSearch</a>
-			<br /> 
-			<br /> 
+			<br />
+			<br />
 			<a href="i3.gazetteerCompare">i3.gazetteerCompare</a>
-			<br /> 
-			<br /> 
+			<br />
+			<br />
 			<a href="i3.placeCompare">i3.placeCompare</a>
-			<br /> 
-			<br /> 
+			<br />
+			<br />
 			<a href="i3.peripleoSearch">i3.peripleoSearch</a>
-			<br /> 
-			<br /> 
+			<br />
+			<br />
 			<a href="i3.chronOntologyGEO">i3.chronOntologyGEO</a>
-			<br /> 
-			<br /> 
+			<br />
+			<br />
 			<a href="cesium">cesiumDemo</a>
+      <br />
+			<br />
+      <a href="cesium/test.htm">Cesium TimeGeography Demo</a>
 		</div>
     </body>
 </html>
